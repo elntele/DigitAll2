@@ -25,7 +25,7 @@ public class ArquivoPdfService {
 	@Autowired
 	private ArquivoPdfRepository arquivoPdfRepository;
 
-//	@Autowired
+	@Autowired
 	private ModelMapper modelMapper;
 
 	/**
@@ -162,15 +162,15 @@ public class ArquivoPdfService {
 	}
 
 	public ArquivoPdfDTO converteArquivoPdfParaArquivoPdfDTO(ArquivoPdf pdf) {
-
-		ArquivoPdfDTO arquivoPdfDTO = modelMapper.map(pdf, ArquivoPdfDTO.class);
+		ArquivoPdfDTO arquivoPdfDTO=new ArquivoPdfDTO();
+		arquivoPdfDTO = modelMapper.map(pdf, ArquivoPdfDTO.class);
 		return arquivoPdfDTO;
 	}
 
 	public ArquivoPdf converterArquivoPdfDTOParaArquivoPdf(ArquivoPdfDTO pdfDTO) {
-
-		ArquivoPdf pdf = modelMapper.map(pdfDTO, ArquivoPdf.class);
-		return pdf;
+		ArquivoPdf arquivoPdf=new ArquivoPdf();
+		arquivoPdf = modelMapper.map(pdfDTO, ArquivoPdf.class);
+		return arquivoPdf;
 	}
 
 }
