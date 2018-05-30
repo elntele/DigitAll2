@@ -19,6 +19,15 @@ public class ArquivoPdfDTO {
 	private Integer idOriginalDocument = null;
 	private Integer idNextPage = null;
 	private String nome;
+	private Integer numeroDepaginasDODocumento;
+	public Integer getNumeroDepaginasDODocumento() {
+		return numeroDepaginasDODocumento;
+	}
+
+	public void setNumeroDepaginasDODocumento(Integer numeroDepaginasDODocumento) {
+		this.numeroDepaginasDODocumento = numeroDepaginasDODocumento;
+	}
+
 	// private List<PDDocument> pages;
 	private byte[] pdf;
 	private boolean isJaEncadeado;

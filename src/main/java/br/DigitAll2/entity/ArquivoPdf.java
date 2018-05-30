@@ -2,6 +2,7 @@ package br.DigitAll2.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -14,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -50,6 +53,18 @@ public class ArquivoPdf implements Serializable {
 	 */
 	@Column(nullable = true)
 	private Integer idOriginalDocument;
+	
+	@Column(nullable = false)
+	private Integer numeroDepaginasDODocumento;
+	
+
+	public Integer getNumeroDepaginasDODocumento() {
+		return numeroDepaginasDODocumento;
+	}
+
+	public void setNumeroDepaginasDODocumento(Integer numeroDepaginasDODocumento) {
+		this.numeroDepaginasDODocumento = numeroDepaginasDODocumento;
+	}
 
 	/**
 	 * caso o id deste atributo, seja ele mesmo, sigifica que ele não tem
@@ -138,6 +153,27 @@ public class ArquivoPdf implements Serializable {
 	public PDDocument getPdf() throws InvalidPasswordException, IOException {
 		PDDocument p =new PDDocument();
 		p.load(this.pdf);
+//	    InputStream is = null;
+//	    ByteArrayOutputStream out = null;
+//	    out = new ByteArrayOutputStream();
+//	    p.save(out);
+//		byte[] data = out.toByteArray();
+//        is = new ByteArrayInputStream(data);
+////        FileUtils.writeByteArrayToFile(new File(
+////        		"br.DigitAll2.Swap/troca.pdf"), IOUtils.toByteArray(is));
+//        FileUtils.writeByteArrayToFile(new File("C:/sqlteste/troca.pdf"), IOUtils.toByteArray(is));
+////        FileUtils.writeByteArrayToFile(new File(
+////        		"C:/Users/jorge/Desktop/rural 2/Currículo/digitalworks/troca.pdf"), IOUtils.toByteArray(is));
+//
+//		
+//	    byte[] file = FileUtils.readFileToByteArray(new File(
+//	    		"br.DigitAll2.Swap/troca.pdf"));
+//	    try {
+//	    	p = PDDocument.load(file);
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//		}  
+		System.out.println("de dentro do entity "+p.getNumberOfPages());
 		return p;
 	}
 

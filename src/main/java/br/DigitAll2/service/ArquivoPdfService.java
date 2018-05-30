@@ -1,10 +1,12 @@
 package br.DigitAll2.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,10 +32,16 @@ public class ArquivoPdfService {
 
 	/**
 	 * Regras de Negócio
+	 * @throws IOException 
+	 * @throws InvalidPasswordException 
 	 */
 
-	public ArquivoPdf salvar(ArquivoPdf pdf) {
-
+	public ArquivoPdf salvar(ArquivoPdf pdf,int numeroDePaginasDoDocumento) throws InvalidPasswordException, IOException {
+		pdf.setNumeroDepaginasDODocumento(numeroDePaginasDoDocumento);
+		
+		if (numeroDePaginasDoDocumento>1){
+			pdf.setMultiPage(true);
+		}
 		return arquivoPdfRepository.save(pdf);
 	}
 
@@ -73,10 +81,10 @@ public class ArquivoPdfService {
 		for (ArquivoPdf a : pdfList) {
 			try {
 				// se o numero da pagina for igual a null, então, é o documento original
-				if (!a.getNumeroDaPagina().equals(null) && a.getPdf().getNumberOfPages() > 0 && !a.isJaEncadeado()) {
+				if (!a.getNumeroDaPagina().equals(null) && !a.isJaEncadeado()) {
 					List<ArquivoPdf> miniListToPutId = new ArrayList<ArquivoPdf>();
 					a.setJaEncadeado(true);
-					this.salvar(a);
+					this.salvar(a,a.getNumeroDepaginasDODocumento());
 					for (ArquivoPdf aq : copyPdfList) {
 						if (aq.getIdOriginalDocument() == a.getIdOriginalDocument()) {
 							aq.setJaEncadeado(true);
@@ -86,10 +94,10 @@ public class ArquivoPdfService {
 					// a lista será ordenada de forma invertida pelo numero da pagina	
 					miniListToPutId = this.invertSortList(miniListToPutId);
 					// updating toda a lista no banco
-					this.salvar(miniListToPutId.get(0));
+					this.salvar(miniListToPutId.get(0),miniListToPutId.get(0).getNumeroDepaginasDODocumento());
 					for (int w = 0; w < miniListToPutId.size(); w++) {
 						miniListToPutId.get(w + 1).setIdNextPage(miniListToPutId.get(w).getID());
-						this.salvar(miniListToPutId.get(w + 1));
+						this.salvar(miniListToPutId.get(w + 1),miniListToPutId.get(w + 1).getNumeroDepaginasDODocumento());
 					}
 				}
 
@@ -110,18 +118,19 @@ public class ArquivoPdfService {
 		pdfList = this.getPdfs();
 		for (ArquivoPdf p : pdfList) {
 			try {
-				if (p.getPdf().getNumberOfPages() > 1 && !p.isJaEncadeado()) {
+				if (p.getNumeroDepaginasDODocumento() > 1 && !p.isJaEncadeado()) {
 					List<PDDocument> pages = new ArrayList<PDDocument>();
 					Splitter splitter = new Splitter(); // de la
 					pages = splitter.split(p.getPdf());// de la
 					Integer nPage = 1;
 					for (PDDocument d : pages) {
 						ArquivoPdf A = new ArquivoPdf();
+						A.setNumeroDepaginasDODocumento(1);
 						A.setIdOriginalDocument(p.getID());
 						A.setPdf(d);
 						A.setNumeroDaPagina(nPage);
 						A.setNome(p.getNome()+"panina"+nPage);
-						this.salvar(A);
+						this.salvar(A,A.getNumeroDepaginasDODocumento());
 						if(nPage==1){
 							A.setStartPage(true);
 						}
@@ -135,13 +144,20 @@ public class ArquivoPdfService {
 		}
 	}
 
-	public ArquivoPdf salvar(byte[] pdf,String nome) {
+	public ArquivoPdf salvar(byte[] pdf,String nome, int numeroDePaginas) {
 		ArquivoPdf pdf1 = new ArquivoPdf();
 		PDDocument pd = null;
 		try {
 			pd = PDDocument.load(pdf);
 			pdf1.setNome(nome);
 			pdf1.setPdf(pd);
+			pdf1.setNumeroDepaginasDODocumento(numeroDePaginas);
+			if(pd.getNumberOfPages()>1){
+				pdf1.setMultiPage(true);
+			}
+			if (numeroDePaginas>1){
+				pdf1.setMultiPage(true);
+			}
 			pdf1.setJaEncadeado(false);
 		} catch (Exception e) {
 			e.fillInStackTrace();
