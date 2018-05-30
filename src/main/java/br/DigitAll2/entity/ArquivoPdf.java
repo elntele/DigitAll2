@@ -136,7 +136,7 @@ public class ArquivoPdf implements Serializable {
 	// }
 
 	public PDDocument getPdf() throws InvalidPasswordException, IOException {
-		PDDocument p = null;
+		PDDocument p =new PDDocument();
 		p.load(this.pdf);
 		return p;
 	}

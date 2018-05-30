@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+
 /**
  * 
  * @author jorge
@@ -15,12 +16,13 @@ import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
  */
 public class ArquivoPdfDTO {
 	private Integer id;
-	private Integer idOriginalDocument=null;
-	private Integer idNextPage=null;
+	private Integer idOriginalDocument = null;
+	private Integer idNextPage = null;
 	private String nome;
-//	private List<PDDocument> pages;
+	// private List<PDDocument> pages;
 	private byte[] pdf;
 	private boolean isJaEncadeado;
+
 	public boolean isJaEncadeado() {
 		return isJaEncadeado;
 	}
@@ -48,7 +50,6 @@ public class ArquivoPdfDTO {
 	private boolean isMultiPage;
 	private boolean isStartPage;
 
-	
 	public ArquivoPdfDTO() {
 		super();
 	}
@@ -85,34 +86,34 @@ public class ArquivoPdfDTO {
 		this.nome = nome;
 	}
 
-//	public List<PDDocument> getPages() {
-//		return pages;
-//	}
-//
-//	public void setPages(List<PDDocument> pages) {
-//		pages = pages;
-//	}
+	// public List<PDDocument> getPages() {
+	// return pages;
+	// }
+	//
+	// public void setPages(List<PDDocument> pages) {
+	// pages = pages;
+	// }
 
 	public PDDocument getPdf() throws InvalidPasswordException, IOException {
-		PDDocument p = null;
+		PDDocument p = new PDDocument();
 		p.load(this.pdf);
 		return p;
 	}
 
 	public void setPdf(PDDocument pdf) {
-		 PDDocument document = null;
-		    InputStream is = null;
-		    ByteArrayOutputStream out = null;
-		    try {
-		        document = pdf;
-		        document.save(out);
-		        byte[] data = out.toByteArray();
-		        is = new ByteArrayInputStream(data);
-		        this.pdf = data;				
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-		
+		PDDocument document = null;
+		InputStream is = null;
+		ByteArrayOutputStream out = null;
+		try {
+			document = pdf;
+			out = new ByteArrayOutputStream();
+			document.save(out);
+			byte[] data = out.toByteArray();
+			this.pdf = data;
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
 	}
 
 }

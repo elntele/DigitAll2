@@ -139,7 +139,7 @@ public class ArquivoPdfService {
 		ArquivoPdf pdf1 = new ArquivoPdf();
 		PDDocument pd = null;
 		try {
-			pd.load(pdf);
+			pd = PDDocument.load(pdf);
 			pdf1.setNome(nome);
 			pdf1.setPdf(pd);
 			pdf1.setJaEncadeado(false);

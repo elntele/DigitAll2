@@ -1,20 +1,25 @@
 package br.DigitAll2.test;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import br.DigitAll2.dto.ArquivoPdfDTO;
 import br.DigitAll2.entity.ArquivoPdf;
 import br.DigitAll2.service.ArquivoPdfService;
 
@@ -31,7 +36,7 @@ public class TesteArquivoPdfService {
 		@Test
 		public void testSalvarArquivoPdf()throws Exception {
 		    byte[] file = FileUtils.readFileToByteArray(new File(
-		    		"C:/multipage-txt.pdf"));
+		    		"C:/sqlteste/multipage-txt.pdf"));
 		    PDDocument document = null;
 	        document = PDDocument.load(file);
 			ArquivoPdf a = new ArquivoPdf();
@@ -42,66 +47,98 @@ public class TesteArquivoPdfService {
 	        assertFalse(arquivoPdfService.getPdfs().contains(a));
 		}
 		
-//		@Test
-//		public void testSalvarArquivoPdfArray()throws Exception {
-//		    byte[] file = FileUtils.readFileToByteArray(new File(
-//		    		"C:/multipage-txt.pdf"));
-//		    PDDocument document = null;
-//	        document = PDDocument.load(file);
-//	        InputStream is = null;
-//		    ByteArrayOutputStream out = null;
-//		    document.save(out);
-//	        byte[] data = out.toByteArray();
-//	        arquivoPdfService.salvar(data,"multipageArray-txt");
-//	        
-//	        assertFalse(arquivoPdfService.getPdfs().contains(a));
-//		}
+		@Test
+		public void testSalvarArquivoPdfArray()throws Exception {
+			// como incialmente não sabemos o id de um elemento autoincremente,
+			// uma maneira prática de realizar este teste é garantir no banco
+			// so haja o elemento que você esta tratando
+		    byte[] file = FileUtils.readFileToByteArray(new File(
+		    		"C:/multipage-txt.pdf"));
+		    //removendo todos os elementos do banco
+		    for (ArquivoPdf a:arquivoPdfService.getPdfs()){
+		    	arquivoPdfService.excluir(a);
+		    }
+			//tranformando o PDDdocumente em array de bytes
+		    PDDocument document = null;
+	        document = PDDocument.load(file);
+		    ByteArrayOutputStream out = null;
+		    out=new ByteArrayOutputStream();
+		    document.save(out);
+	        byte[] data = out.toByteArray();
+	        //inserindo um único elemento no banco.
+	        arquivoPdfService.salvar(data,"multipageArray2-txt");
+	        //recupenrando o elemento que foi inserido para comparar os array de bytes
+	        ByteArrayOutputStream out2 = null;
+	        out2 = new ByteArrayOutputStream();
+	        PDDocument pdd=new PDDocument();	        
+	        pdd=arquivoPdfService.getPdfs().get(0).getPdf();
+	        pdd.save(out2);
+	        byte[] data2 = out2.toByteArray();
+	        //Salvando o elmento que foi recuperando do banco em disco
+		    InputStream is = null;
+	        is = new ByteArrayInputStream(data2);
+	        FileUtils.writeByteArrayToFile(new File(
+	        		"C:/sqlteste/multipage-txt2.pdf"), IOUtils.toByteArray(is));
+	        //recuperando o elemento que foi salvo em disco e tranformando ele outra vez em array de bytes
+		    byte[] file3 = FileUtils.readFileToByteArray(new File(
+		    		"C:/sqlteste/multipage-txt2.pdf"));
+		    PDDocument document3 = null;
+	        document3 = PDDocument.load(file3);
+		    ByteArrayOutputStream out3 = null;
+		    out3=new ByteArrayOutputStream();
+		    document.save(out3);
+	        byte[] data3 = out.toByteArray();
+	        // comparando o array de bytes original, com o recuperando do elemento salvo em disco
+	        // apos ser recuperado do banco
+	        assertArrayEquals(data, data3);
+		}
 
 		
 //		
-//		@Test
-//		public void testExcluirAluno()throws Exception{
-//			AlunoSisa alu = new AlunoSisa();
-//			alu = alus.getAlunoPorId(1);
-//			//alus.excluir(alu);
-//			assertFalse(alus.getAlunos().contains(alu));
-//		}
-//		
-//		@Test
-//		public void testGetAlunos()throws Exception{
-//			Collection<AlunoSisa> colecaoAlu = alus.getAlunos();
-//			assertFalse(colecaoAlu.isEmpty());
-//		}
-//		
-//		@Test
-//		public void testGetAlunosPorId()throws Exception{
-//			int id = 1;
-//			Collection<AlunoSisa> colecaoAlu = alus.getAlunos();
-//			alus.getAlunoPorId(id);
-//			assertTrue(id!=0 && id<=colecaoAlu.size());
-//		}
-//		
-//		@Test
-//		public void testConverterAlunoParaDTO()throws Exception{
-//					
-//			AlunoSisa aluno = new AlunoSisa();
-//			aluno.setNome("Tatiana Melo");
-//			aluno.setCpf(1234567825);
-//			aluno.setEmail("tati@gmail.com");
-//			aluno.setAreaDePreferencia("Ensiso");
-//			aluno.setSenha("tati90");
-//			aluno.setAnoIngresso(2015);
-//			aluno.setSemestreIngresso(1);
-//			aluno.setQtdPeriodosTrancados(0);
-//			
-//			AlunoDTO alunoDTO = modelMapper.map(aluno, AlunoDTO.class);
-//			
-//			assertEquals(aluno.getNome(), alunoDTO.getNome());
-//			assertEquals(aluno.getEmail(), alunoDTO.getEmail());
-//			assertEquals(aluno.getSenha(), alunoDTO.getSenha());
-//			assertEquals(aluno.getAreaDePreferencia(), alunoDTO.getAreaDePreferencia());
-//			
-//		}
+		@Test
+		public void testExcluirArquivoPdf()throws Exception{
+			ArquivoPdf arq=new ArquivoPdf();
+			arq= arquivoPdfService.getPdfs().get(0);
+			arquivoPdfService.excluir(arq);
+			assertFalse(arquivoPdfService.getPdfs().contains(arq));
+		}
+		
+		@Test
+		public void testGetAlunos()throws Exception{
+			Collection<ArquivoPdf> colecaoAq = arquivoPdfService.getPdfs();
+			assertFalse(colecaoAq.isEmpty());
+		}
+		
+		@Test
+		public void testGetAlunosPorId()throws Exception{
+			int id ;
+			List<ArquivoPdf> colecaoAq =new ArrayList<ArquivoPdf>();
+			ArquivoPdf aQ=new ArquivoPdf();
+			ArquivoPdf aQ1=new ArquivoPdf();
+			colecaoAq= arquivoPdfService.getPdfs();
+			aQ=colecaoAq.get(0);
+			id=aQ.getID();
+			aQ1=arquivoPdfService.getPdfById(id);
+			assertTrue(aQ.getID().equals(aQ1.getID()));
+		}
+		
+		@Test
+		public void testConverterAlunoParaDTO()throws Exception{
+					
+			   byte[] file = FileUtils.readFileToByteArray(new File(
+			    		"C:/sqlteste/multipage-txt.pdf"));
+			    PDDocument document = null;
+		        document = PDDocument.load(file);
+				ArquivoPdf arquivo = new ArquivoPdf();
+				arquivo.setNome("multipage-txt");
+				arquivo.setPdf(document);
+				arquivo.setStartPage(false);
+				ArquivoPdfDTO arquivoDTO =	arquivoPdfService.converteArquivoPdfParaArquivoPdfDTO(arquivo);
+			assertEquals(arquivo.getNome(), arquivoDTO.getNome());
+			assertEquals(arquivo.getPdf(), arquivoDTO.getPdf());
+			assertEquals(arquivo.isStartPage(), arquivoDTO.isStartPage());
+			
+		}
 //		
 //		@Test
 //		public void testConverterAlunoDTOParaEntidade()throws Exception{
