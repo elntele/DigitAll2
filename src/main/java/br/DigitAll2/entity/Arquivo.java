@@ -133,7 +133,7 @@ public class Arquivo {
 		//String texto=arquivorecebido(file);
 		outroteste(file);
 		PdfReader pdfReader;
-		
+//		pdfReader.ASCII85Decode(in);// testa isso
 		try {
 			pdfReader = new PdfReader(caminho);
 //			PRStream pr = new PRStream(pdfReader);

@@ -1,27 +1,21 @@
 package br.DigitAll2.entity;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.stereotype.Component;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 
 /**
@@ -30,7 +24,6 @@ import org.springframework.stereotype.Component;
  */
 @Entity
 @Table(name = "pdf")
-//@Component
 public class ArquivoPdf implements Serializable {
 	/**
 	 * 
@@ -39,75 +32,48 @@ public class ArquivoPdf implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name = "id")
+	@Column(name = "id_DocumentOriginal")
 	@SequenceGenerator(name = "arquivoPdf_sequence", sequenceName = "arquivoPdf_sequence")
 	@GeneratedValue(strategy = GenerationType.AUTO, generator = "arquivoPdf_sequence")
 	private Integer id;
-
-	/**
-	 * caso o id deste atributo seja o id do proprio objeto significa que ele
-	 * não esta partido. caso não seja o id dele, então ele é parte de um outro
-	 * documento
-	 * 
-	 * @return
-	 */
-	@Column(nullable = true)
-	private Integer idOriginalDocument;
 	
 	@Column(nullable = false)
 	private Integer numeroDepaginasDODocumento;
-	
 
-	public Integer getNumeroDepaginasDODocumento() {
-		return numeroDepaginasDODocumento;
-	}
-
-	public void setNumeroDepaginasDODocumento(Integer numeroDepaginasDODocumento) {
-		this.numeroDepaginasDODocumento = numeroDepaginasDODocumento;
-	}
-
-	/**
-	 * caso o id deste atributo, seja ele mesmo, sigifica que ele não tem
-	 * proxima pagina. pode ser a última, ou ele pode ser um documento não
-	 * partido.
-	 */
-	@Column(nullable = true)
-	private Integer idNextPage;
-	/**
-	 * terá vários documentos com o mesmo nome porem com id diferente
-	 */
 	@Column(nullable = false)
 	private String nome;
 
-	@Column(nullable = true)
-	private Integer numeroDaPagina;
+	@Column(nullable = false)
+	private boolean isJaDivididEmPaginas;
 
-	@Column(nullable = true)
-	private boolean isJaEncadeado;
-
-	@Column(nullable = true)
+	@Column(nullable = false)
 	private boolean isMultiPage;
 
-	// @Column(nullable=false)
-	// @OneToMany(mappedBy="morePages", fetch=FetchType.LAZY,
-	// orphanRemoval=true)
-	// @Cascade(CascadeType.REMOVE)
-	// private List<PDDocument> pages;
-	/**
-	 * é o pdf em si, sendo ele com uma ou n paginas
-	 */
-
-	// private Oid oid;
 	@Column(nullable = false)
 	private byte[] pdf;
-	/**
-	 * caso este seja a primeira pagina de um arquivo dividido em páginas
-	 */
-	@Column(nullable = false)
-	private boolean isStartPage;
+	
+//	@OneToMany(mappedBy="DocumentOriginal")
+	@OneToMany(mappedBy="DocumentOriginal", fetch=FetchType.EAGER, orphanRemoval=true)
+	@Cascade(CascadeType.REMOVE)
+	private List <PdfPagina> listaDePaginas= new ArrayList<>();
+
+
 
 	public ArquivoPdf() {
 		super();
+	}
+	
+	public void setJaDivididEmPaginas(boolean isJaDivididEmPaginas) {
+		this.isJaDivididEmPaginas = isJaDivididEmPaginas;
+	}
+
+	
+	public void setNumeroDepaginasDODocumento(Integer numeroDepaginasDODocumento) {
+		this.numeroDepaginasDODocumento = numeroDepaginasDODocumento;
+	}
+	
+	public Integer getNumeroDepaginasDODocumento() {
+		return numeroDepaginasDODocumento;
 	}
 
 	public Integer getID() {
@@ -118,21 +84,6 @@ public class ArquivoPdf implements Serializable {
 		id = iD;
 	}
 
-	public Integer getIdOriginalDocument() {
-		return idOriginalDocument;
-	}
-
-	public void setIdOriginalDocument(Integer idOriginalDocument) {
-		idOriginalDocument = idOriginalDocument;
-	}
-
-	public Integer getIdNextPage() {
-		return idNextPage;
-	}
-
-	public void setIdNextPage(Integer idNextPage) {
-		idNextPage = idNextPage;
-	}
 
 	public String getNome() {
 		return nome;
@@ -141,64 +92,13 @@ public class ArquivoPdf implements Serializable {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
-
-	// public List<PDDocument> getPages() {
-	// return pages;
-	// }
-
-	// public void setPages(List<PDDocument> pages) {
-	// pages = pages;
-	// }
-
-	public PDDocument getPdf() throws InvalidPasswordException, IOException {
-		PDDocument p =new PDDocument();
-		p.load(this.pdf);
-//	    InputStream is = null;
-//	    ByteArrayOutputStream out = null;
-//	    out = new ByteArrayOutputStream();
-//	    p.save(out);
-//		byte[] data = out.toByteArray();
-//        is = new ByteArrayInputStream(data);
-////        FileUtils.writeByteArrayToFile(new File(
-////        		"br.DigitAll2.Swap/troca.pdf"), IOUtils.toByteArray(is));
-//        FileUtils.writeByteArrayToFile(new File("C:/sqlteste/troca.pdf"), IOUtils.toByteArray(is));
-////        FileUtils.writeByteArrayToFile(new File(
-////        		"C:/Users/jorge/Desktop/rural 2/Currículo/digitalworks/troca.pdf"), IOUtils.toByteArray(is));
-//
-//		
-//	    byte[] file = FileUtils.readFileToByteArray(new File(
-//	    		"br.DigitAll2.Swap/troca.pdf"));
-//	    try {
-//	    	p = PDDocument.load(file);
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//		}  
-		System.out.println("de dentro do entity "+p.getNumberOfPages());
-		return p;
-	}
-
-	public void setPdf(PDDocument pdf) {
-		PDDocument document = null;
-		InputStream is = null;
-		ByteArrayOutputStream out = null;
-		try {
-			document = pdf;
-			out = new ByteArrayOutputStream();
-			document.save(out);
-			byte[] data = out.toByteArray();
-			this.pdf = data;
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-	}
 	
-	public boolean isJaEncadeado() {
-		return isJaEncadeado;
+	public byte [] getPdf() {
+		return this.pdf;
 	}
 
-	public void setJaEncadeado(boolean isJaEncadeado) {
-		this.isJaEncadeado = isJaEncadeado;
+	public void setPdf(byte[] data) {
+			this.pdf = data;
 	}
 
 	public boolean isMultiPage() {
@@ -209,20 +109,18 @@ public class ArquivoPdf implements Serializable {
 		this.isMultiPage = isMultiPage;
 	}
 
-	public boolean isStartPage() {
-		return isStartPage;
+	public boolean isJaDivididEmPaginas() {
+		return isJaDivididEmPaginas;
 	}
 
-	public void setStartPage(boolean isStartPage) {
-		this.isStartPage = isStartPage;
+	public List<PdfPagina> getListaDePaginas() {
+		return listaDePaginas;
 	}
 
-	public Integer getNumeroDaPagina() {
-		return numeroDaPagina;
+	public void setListaDePaginas(List<PdfPagina> listaDePaginas) {
+		this.listaDePaginas = listaDePaginas;
 	}
-
-	public void setNumeroDaPagina(Integer numeroDaPagina) {
-		this.numeroDaPagina = numeroDaPagina;
-	}
-
+	
+	
+	
 }

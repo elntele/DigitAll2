@@ -1,13 +1,6 @@
 package br.DigitAll2.dto;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+//import br.DigitAll2.entity.PdfPagina;
 
 /**
  * 
@@ -15,52 +8,36 @@ import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
  *
  */
 public class ArquivoPdfDTO {
+
 	private Integer id;
-	private Integer idOriginalDocument = null;
-	private Integer idNextPage = null;
-	private String nome;
+
 	private Integer numeroDepaginasDODocumento;
-	public Integer getNumeroDepaginasDODocumento() {
-		return numeroDepaginasDODocumento;
+	private String nome;
+	private boolean isJaDivididEmPaginas;
+	private boolean isMultiPage;
+	private byte[] pdf;
+//	private List <PdfPagina> listaDePaginas= new ArrayList<>();
+
+
+	public boolean isJaDivididEmPaginas() {
+		return isJaDivididEmPaginas;
 	}
 
+	public void setJaDivididEmPaginas(boolean isJaDivididEmPaginas) {
+		this.isJaDivididEmPaginas = isJaDivididEmPaginas;
+	}
+
+	
+	public ArquivoPdfDTO() {
+		super();
+	}
+	
 	public void setNumeroDepaginasDODocumento(Integer numeroDepaginasDODocumento) {
 		this.numeroDepaginasDODocumento = numeroDepaginasDODocumento;
 	}
-
-	// private List<PDDocument> pages;
-	private byte[] pdf;
-	private boolean isJaEncadeado;
-
-	public boolean isJaEncadeado() {
-		return isJaEncadeado;
-	}
-
-	public void setJaEncadeado(boolean isJaEncadeado) {
-		this.isJaEncadeado = isJaEncadeado;
-	}
-
-	public boolean isMultiPage() {
-		return isMultiPage;
-	}
-
-	public void setMultiPage(boolean isMultiPage) {
-		this.isMultiPage = isMultiPage;
-	}
-
-	public boolean isStartPage() {
-		return isStartPage;
-	}
-
-	public void setStartPage(boolean isStartPage) {
-		this.isStartPage = isStartPage;
-	}
-
-	private boolean isMultiPage;
-	private boolean isStartPage;
-
-	public ArquivoPdfDTO() {
-		super();
+	
+	public Integer getNumeroDepaginasDODocumento() {
+		return numeroDepaginasDODocumento;
 	}
 
 	public Integer getID() {
@@ -71,22 +48,6 @@ public class ArquivoPdfDTO {
 		id = iD;
 	}
 
-	public Integer getIdOriginalDocument() {
-		return idOriginalDocument;
-	}
-
-	public void setIdOriginalDocument(Integer idOriginalDocument) {
-		idOriginalDocument = idOriginalDocument;
-	}
-
-	public Integer getIdNextPage() {
-		return idNextPage;
-	}
-
-	public void setIdNextPage(Integer idNextPage) {
-		idNextPage = idNextPage;
-	}
-
 	public String getNome() {
 		return nome;
 	}
@@ -94,35 +55,22 @@ public class ArquivoPdfDTO {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
-
-	// public List<PDDocument> getPages() {
-	// return pages;
-	// }
-	//
-	// public void setPages(List<PDDocument> pages) {
-	// pages = pages;
-	// }
-
-	public PDDocument getPdf() throws InvalidPasswordException, IOException {
-		PDDocument p = new PDDocument();
-		p.load(this.pdf);
-		return p;
+	
+	public byte [] getPdf() {
+		return this.pdf;
 	}
 
-	public void setPdf(PDDocument pdf) {
-		PDDocument document = null;
-		InputStream is = null;
-		ByteArrayOutputStream out = null;
-		try {
-			document = pdf;
-			out = new ByteArrayOutputStream();
-			document.save(out);
-			byte[] data = out.toByteArray();
-			this.pdf = data;
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
 
+	public void setPdf(byte[] data) {
+			this.pdf = data;
+	}
+
+	public boolean isMultiPage() {
+		return isMultiPage;
+	}
+
+	public void setMultiPage(boolean isMultiPage) {
+		this.isMultiPage = isMultiPage;
 	}
 
 }

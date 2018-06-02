@@ -1,19 +1,27 @@
 package br.DigitAll2.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import br.DigitAll2.dto.ArquivoPdfDTO;
 import br.DigitAll2.entity.ArquivoPdf;
+import br.DigitAll2.entity.PdfPagina;
 import br.DigitAll2.repository.ArquivoPdfRepository;
 
 /**
@@ -22,7 +30,6 @@ import br.DigitAll2.repository.ArquivoPdfRepository;
  *
  */
 @Service
-//@Component
 public class ArquivoPdfService {
 	@Autowired
 	private ArquivoPdfRepository arquivoPdfRepository;
@@ -30,137 +37,118 @@ public class ArquivoPdfService {
 	@Autowired
 	private ModelMapper modelMapper;
 
+	@Autowired
+	private PdfPaginaService pdfPaginaService;
+
 	/**
 	 * Regras de Negócio
-	 * @throws IOException 
-	 * @throws InvalidPasswordException 
+	 * 
+	 * @throws IOException
+	 * @throws InvalidPasswordException
 	 */
 
-	public ArquivoPdf salvar(ArquivoPdf pdf,int numeroDePaginasDoDocumento) throws InvalidPasswordException, IOException {
+	public ArquivoPdf salvar(ArquivoPdf pdf, int numeroDePaginasDoDocumento)
+			throws InvalidPasswordException, IOException {
 		pdf.setNumeroDepaginasDODocumento(numeroDePaginasDoDocumento);
-		
-		if (numeroDePaginasDoDocumento>1){
+
+		if (numeroDePaginasDoDocumento > 1) {
 			pdf.setMultiPage(true);
 		}
 		return arquivoPdfRepository.save(pdf);
 	}
 
-	public List<ArquivoPdf> invertSortList(List<ArquivoPdf> l) {
-		List<ArquivoPdf> invertedSortList = new ArrayList<ArquivoPdf>();
-		try {
-			int i = this.getPdfById(l.get(0).getIdOriginalDocument()).getPdf().getNumberOfPages();
-			int tamanhoDoDocumento = i;
-			int maiorPagina = i;
-
-			while (i < tamanhoDoDocumento) {
-				if (l.get(i).getNumeroDaPagina() == maiorPagina) {
-					invertedSortList.add(l.get(i));
-					maiorPagina -= 1;
-				}
-				i += 1;
-			}
-
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-		return invertedSortList;
+	public void salvarArquivoEmDisco(String caminho, Integer id) throws IOException {
+		ArquivoPdf arq = this.getPdfById(id);
+		byte[] data = arq.getPdf();
+		InputStream is = null;
+		is = new ByteArrayInputStream(data);
+		FileUtils.writeByteArrayToFile(new File(caminho + "/" + arq.getNome() + ".pdf"), IOUtils.toByteArray(is));
 
 	}
-	
+
+	@SuppressWarnings("deprecation")
+	public void MontarArquivoSalvarEmDisco(String caminho, String nome, Integer id) throws IOException {
+		ArquivoPdf arq = this.getPdfById(id);
+		PDFMergerUtility merge = new PDFMergerUtility();
+		List<PdfPagina> listaPagina = new ArrayList<>();
+		listaPagina = arq.getListaDePaginas();
+		for (PdfPagina pd : listaPagina) {
+			byte[] data = arq.getPdf();
+			InputStream is = null;
+			is = new ByteArrayInputStream(data);
+			merge.addSource(is);
+		}
+		merge.setDestinationFileName(caminho + "/" + nome + ".pdf");
+		merge.mergeDocuments();
+
+		// byte [] data=arq.getPdf();
+		// InputStream is = null;
+		// is = new ByteArrayInputStream(data);
+		// FileUtils.writeByteArrayToFile(new
+		// File(caminho+"/"+arq.getNome()+".pdf"),
+		// IOUtils.toByteArray(is));
+
+	}
+
 	/**
-	 * método seta a lista encadeada dos arquivos multipage quando divididos em páginas
+	 * método divide os arquivo de mais de uma pagina em vários arquivos de uma
+	 * página
 	 * 
+	 * @throws IOException
+	 * @throws InvalidPasswordException
 	 */
 
-	public void setAllId() {
-		List<ArquivoPdf> pdfList = new ArrayList<ArquivoPdf>();
-		List<ArquivoPdf> copyPdfList = new ArrayList<ArquivoPdf>();
-		pdfList = this.getPdfs();
-		copyPdfList.addAll(pdfList);
-
-		for (ArquivoPdf a : pdfList) {
-			try {
-				// se o numero da pagina for igual a null, então, é o documento original
-				if (!a.getNumeroDaPagina().equals(null) && !a.isJaEncadeado()) {
-					List<ArquivoPdf> miniListToPutId = new ArrayList<ArquivoPdf>();
-					a.setJaEncadeado(true);
-					this.salvar(a,a.getNumeroDepaginasDODocumento());
-					for (ArquivoPdf aq : copyPdfList) {
-						if (aq.getIdOriginalDocument() == a.getIdOriginalDocument()) {
-							aq.setJaEncadeado(true);
-							miniListToPutId.add(aq);
-						}
-					}
-					// a lista será ordenada de forma invertida pelo numero da pagina	
-					miniListToPutId = this.invertSortList(miniListToPutId);
-					// updating toda a lista no banco
-					this.salvar(miniListToPutId.get(0),miniListToPutId.get(0).getNumeroDepaginasDODocumento());
-					for (int w = 0; w < miniListToPutId.size(); w++) {
-						miniListToPutId.get(w + 1).setIdNextPage(miniListToPutId.get(w).getID());
-						this.salvar(miniListToPutId.get(w + 1),miniListToPutId.get(w + 1).getNumeroDepaginasDODocumento());
-					}
-				}
-
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-
-		}
-
-	}
-	/**
-	 * método divide os arquivo de mais de uma pagina em vários
-	 * arquivos de uma página
-	 */
-
-	public void ResizingFile() {
+	public void ResizingFile() throws InvalidPasswordException, IOException {
 		List<ArquivoPdf> pdfList = new ArrayList<ArquivoPdf>();
 		pdfList = this.getPdfs();
 		for (ArquivoPdf p : pdfList) {
 			try {
-				if (p.getNumeroDepaginasDODocumento() > 1 && !p.isJaEncadeado()) {
+				if (!p.isJaDivididEmPaginas() && p.isMultiPage()) {
 					List<PDDocument> pages = new ArrayList<PDDocument>();
-					Splitter splitter = new Splitter(); // de la
-					pages = splitter.split(p.getPdf());// de la
+					Splitter splitter = new Splitter();
+					PDDocument document = null;
+					document = PDDocument.load(p.getPdf());
+					pages = splitter.split(document);
 					Integer nPage = 1;
 					for (PDDocument d : pages) {
-						ArquivoPdf A = new ArquivoPdf();
-						A.setNumeroDepaginasDODocumento(1);
-						A.setIdOriginalDocument(p.getID());
-						A.setPdf(d);
-						A.setNumeroDaPagina(nPage);
-						A.setNome(p.getNome()+"panina"+nPage);
-						this.salvar(A,A.getNumeroDepaginasDODocumento());
-						if(nPage==1){
-							A.setStartPage(true);
+						PdfPagina pp = new PdfPagina();
+						pp.setDocumentOriginal(p);
+						pp.setNome(p.getNome() + "pg" + nPage);
+						pp.setNumeroDaPagina(nPage);
+						ByteArrayOutputStream out = null;
+						out = new ByteArrayOutputStream();
+						d.save(out);
+						byte[] data = out.toByteArray();
+						pp.setPdf(data);
+						pp.setIdOriginalDocument(p.getID());
+						pp.setNumeroDepaginasDODocumento(1);
+						if (nPage == 1) {
+							pp.setStartPage(true);
+						} else {
+							pp.setStartPage(false);
 						}
+						pdfPaginaService.salvarPagina(pp);
 						nPage += 1;
 					}
+					p.setJaDivididEmPaginas(true);
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
-			this.setAllId();
+			this.pdfPaginaService.setAllId();
 		}
 	}
 
-	public ArquivoPdf salvar(byte[] pdf,String nome, int numeroDePaginas) {
+	public ArquivoPdf salvar(byte[] pdf, String nome, int numeroDePaginas) {
 		ArquivoPdf pdf1 = new ArquivoPdf();
-		PDDocument pd = null;
-		try {
-			pd = PDDocument.load(pdf);
-			pdf1.setNome(nome);
-			pdf1.setPdf(pd);
-			pdf1.setNumeroDepaginasDODocumento(numeroDePaginas);
-			if(pd.getNumberOfPages()>1){
-				pdf1.setMultiPage(true);
-			}
-			if (numeroDePaginas>1){
-				pdf1.setMultiPage(true);
-			}
-			pdf1.setJaEncadeado(false);
-		} catch (Exception e) {
-			e.fillInStackTrace();
+		pdf1.setNome(nome);
+		pdf1.setPdf(pdf);
+		pdf1.setNumeroDepaginasDODocumento(numeroDePaginas);
+		if (numeroDePaginas > 1) {
+			pdf1.setMultiPage(true);
+		}
+		if (numeroDePaginas > 1) {
+			pdf1.setMultiPage(true);
 		}
 		return arquivoPdfRepository.save(pdf1);
 	}
@@ -178,13 +166,13 @@ public class ArquivoPdfService {
 	}
 
 	public ArquivoPdfDTO converteArquivoPdfParaArquivoPdfDTO(ArquivoPdf pdf) {
-		ArquivoPdfDTO arquivoPdfDTO=new ArquivoPdfDTO();
+		ArquivoPdfDTO arquivoPdfDTO = new ArquivoPdfDTO();
 		arquivoPdfDTO = modelMapper.map(pdf, ArquivoPdfDTO.class);
 		return arquivoPdfDTO;
 	}
 
 	public ArquivoPdf converterArquivoPdfDTOParaArquivoPdf(ArquivoPdfDTO pdfDTO) {
-		ArquivoPdf arquivoPdf=new ArquivoPdf();
+		ArquivoPdf arquivoPdf = new ArquivoPdf();
 		arquivoPdf = modelMapper.map(pdfDTO, ArquivoPdf.class);
 		return arquivoPdf;
 	}
