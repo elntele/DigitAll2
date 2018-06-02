@@ -3,7 +3,7 @@ package br.DigitAll2.dto;
 import br.DigitAll2.entity.ArquivoPdf;
 
 public class PdfPaginaDTO {
-	
+
 	private Integer id;
 	private Integer idOriginalDocument;
 	private ArquivoPdf DocumentOriginal;
@@ -14,20 +14,20 @@ public class PdfPaginaDTO {
 	private byte[] pdf;
 	private boolean isStartPage;
 	
+	
+	
 	public PdfPaginaDTO() {
 		super();
 	}
-	
 	public Integer getId() {
 		return id;
 	}
-
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	public Integer getIdOriginalDocument() {
-		return idOriginalDocument;
-	}
+//	public Integer getIdOriginalDocument() {
+//		return idOriginalDocument;
+//	}
 	public void setIdOriginalDocument(Integer idOriginalDocument) {
 		this.idOriginalDocument = idOriginalDocument;
 	}
@@ -73,6 +73,6 @@ public class PdfPaginaDTO {
 	public void setStartPage(boolean isStartPage) {
 		this.isStartPage = isStartPage;
 	}
-
-
+	
+	
 }

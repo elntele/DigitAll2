@@ -21,10 +21,11 @@ public class PdfPaginaService {
 	private PdfPaginaRepository pdfPaginaRepository;
 
 	@Autowired
+	private ModelMapper modelMapper;
+	
+	@Autowired
 	private ArquivoPdfService arquivoPdfService;
 
-	@Autowired
-	private ModelMapper modelMapper;
 
 	public PdfPagina salvarPagina(PdfPagina pdf) throws InvalidPasswordException, IOException {
 		pdf.setNumeroDepaginasDODocumento(1);

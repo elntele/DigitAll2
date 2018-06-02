@@ -67,26 +67,6 @@ public class TestePdfPaginaService {
 			assertFalse(pdfPaginaService.getPaginas().contains(a));
 		}
 
-		@Test
-		public void testConverterPdfPaginaParaPdfPaginaDTO() throws Exception {
-
-			byte[] file = FileUtils.readFileToByteArray(new File("C:/sqlteste/singlepage-txt.pdf"));
-			
-			PdfPagina pagina = new PdfPagina();
-			pagina.setNome("singlepage-txt-txt");
-			pagina.setPdf(file);
-			PDDocument documento=null;
-			documento = PDDocument.load(file);
-			pagina.setNumeroDepaginasDODocumento(1);
-			
-			PdfPaginaDTO paginaDTO = pdfPaginaService.convertePdfpaginaParaPdfPaginaDTO(pagina);
-			
-			byte [] byteDto=paginaDTO.getPdf();
-			byte [] byteAquivo=pagina.getPdf();
-			assertEquals(pagina.getNome(), paginaDTO.getNome());
-			assertArrayEquals(byteDto, byteAquivo);
-
-		}
 		
 
 		@Test

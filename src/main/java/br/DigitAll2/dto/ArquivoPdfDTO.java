@@ -1,6 +1,9 @@
 package br.DigitAll2.dto;
 
-//import br.DigitAll2.entity.PdfPagina;
+import java.util.ArrayList;
+import java.util.List;
+
+import br.DigitAll2.entity.PdfPagina;
 
 /**
  * 
@@ -16,7 +19,7 @@ public class ArquivoPdfDTO {
 	private boolean isJaDivididEmPaginas;
 	private boolean isMultiPage;
 	private byte[] pdf;
-//	private List <PdfPagina> listaDePaginas= new ArrayList<>();
+	private List <PdfPagina> listaDePaginas= new ArrayList<>();
 
 
 	public boolean isJaDivididEmPaginas() {
@@ -73,4 +76,13 @@ public class ArquivoPdfDTO {
 		this.isMultiPage = isMultiPage;
 	}
 
+	public List<PdfPagina> getListaDePaginas() {
+		return listaDePaginas;
+	}
+
+	public void setListaDePaginas(List<PdfPagina> listaDePaginas) {
+		this.listaDePaginas = listaDePaginas;
+	}
+
+	
 }
